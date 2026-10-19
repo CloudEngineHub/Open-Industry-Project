@@ -6,7 +6,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/ACRPr6sBpH)
-[![Latest Release](https://img.shields.io/github/v/release/Open-Industry-Project/Open-Industry-Project)](https://github.com/Open-Industry-Project/Open-Industry-Project/releases)
+[![Latest Release](https://img.shields.io/github/v/release/Open-Industry-Project/Open-Industry-Project-Godot)](https://github.com/Open-Industry-Project/Open-Industry-Project-Godot/releases)
+
+> [!IMPORTANT]
+> This is the Godot version of Open Industry Project, and it is no longer maintained. Its successor runs in the browser and as a desktop app: try it at [openindustryproject.org](https://www.openindustryproject.org), or find the code at [Open-Industry-Project/Open-Industry-Project](https://github.com/Open-Industry-Project/Open-Industry-Project).
 
 Free and open-source warehouse/manufacturing development framework and simulator built on Godot.
 
@@ -20,7 +23,7 @@ Supported Communication Protocols:
 - Siemens S7 1200 & 1500 Put/Get protocol
 - Beckhoff ADS via the [Beckhoff ADS](https://github.com/Beckhoff/ADS) library (TwinCAT 2 & 3)
 - Universal Robots RTDE (Real-Time Data Exchange v2): see the [official RTDE guide](https://docs.universal-robots.com/tutorials/communication-protocol-tutorials/rtde-guide.html)
-- MQTT via [Eclipse Paho MQTT C](https://github.com/eclipse-paho/paho.mqtt.c) (plaintext TCP, MQTT 3.1.1; TLS and QoS > 0 not yet supported)
+- MQTT via [Eclipse Paho MQTT C](https://github.com/eclipse-paho/paho.mqtt.c) (plaintext TCP, MQTT 3.1.1; no TLS, QoS 0 only)
 
 ## Table of Contents
 
@@ -32,18 +35,17 @@ Supported Communication Protocols:
   - [OPC UA Browser](#opc-ua-browser)
   - [Tag Name Format](#tag-name-format)
 - [Importing Models](#importing-models)
-- [Help Wanted](#help-wanted)
 - [License](#license)
 
 ## Demo
 
-https://github.com/Open-Industry-Project/Open-Industry-Project/assets/105675984/e78c3b0a-bb8e-411a-aa17-b2b6534868a4
+https://github.com/Open-Industry-Project/Open-Industry-Project-Godot/assets/105675984/e78c3b0a-bb8e-411a-aa17-b2b6534868a4
 
 ## Getting Started
 
 ### Installation
 
-1. Download the latest package from the [Releases](https://github.com/Open-Industry-Project/Open-Industry-Project/releases) page. It includes the project files and the custom Godot fork.
+1. Download the latest package from the [Releases](https://github.com/Open-Industry-Project/Open-Industry-Project-Godot/releases) page. It includes the project files and the custom Godot fork.
 2. Extract the archive and open the included Godot editor.
 3. Use the Project Manager to open or create a new project.
 
@@ -83,7 +85,7 @@ The simulator will not communicate with any device until the "Enable Comms" chec
 
 Tag Groups are a logical way to organize sets of tags. Each Tag Group is associated with one PLC or one OPC UA client. When connecting to multiple PLCs or OPC UA endpoints, create a separate tag group for each one.
 
-The "Polling Rate" indicates how often OIPComms will read all the tags that are part of that tag group. The simulation does not read directly from the devices; it reads from a thread-safe data buffer that holds the value retained from the last poll. Writing values from the simulation occurs as soon as possible and is also thread-safe.
+The "Polling (ms)" setting indicates how often OIPComms will read all the tags that are part of that tag group. The simulation does not read directly from the devices; it reads from a thread-safe data buffer that holds the value retained from the last poll. Writing values from the simulation occurs as soon as possible and is also thread-safe.
 
 In the event that a write operation is queued by the simulation and a poll is halfway through completing (for example 100 out of 200 tags in the group have been read), the write operation will not complete until the poll completes.
 
@@ -122,7 +124,7 @@ The Tag Name format depends on the protocol selected for the tag group:
 - **EtherNet/IP (`ab_eip`)**: The CIP tag name as defined in the PLC program, e.g. `MyTag`, `Program:MainProgram.MyTag`, `myUDT.field`, `myArray[0]`.
 - **Modbus TCP (`modbus_tcp`)**: A register type prefix followed by the register number. Prefixes: `co` (coil), `di` (discrete input), `hr` (holding register), `ir` (input register). For example: `hr0`, `co21`, `ir64000`.
 - **OPC UA (`opc_ua`)**: The full NodeId. For example, `ns=2;s=MyVariable` or `ns=2;i=12345`.
-- **Siemens S7 (`s7`)**: Register identifier `Ix.y, Qx.y, Mx.y` (coil), `IBx, QBx, MB.x` (byte), `IWx, MDx, QLx, ...` (word, double word, and non standard L notation quad word). The Input memory space can be written if they do not overlap the rack & Profinet inputs. The Output space can be written also under the same condition.
+- **Siemens S7 (`siemens put/get`)**: Register identifier `Ix.y, Qx.y, Mx.y` (bit), `IBx, QBx, MBx` (byte), `IWx, MDx, QLx, ...` (word, double word, and non standard L notation quad word). The Input memory space can be written if they do not overlap the rack & Profinet inputs. The Output space can be written also under the same condition.
 - **Beckhoff ADS (`ads`)**: A symbol path as it appears in the TwinCAT runtime, e.g. `MAIN.fbMotor.bRunning` or `GVL_IO.iCounter`.
 - **Universal Robots RTDE (`rtde`)**: A UR RTDE variable name (e.g. `actual_q[0]`, `runtime_state`, `input_int_register_0`). Vector fields use `name[index]` syntax. See the [official UR RTDE guide](https://docs.universal-robots.com/tutorials/communication-protocol-tutorials/rtde-guide.html) for the full variable vocabulary.
 - **MQTT (`mqtt`)**: The MQTT topic this tag subscribes to and publishes on, e.g. `sensors/temp1` or `factory/line_a/state`. Wildcards (`+`, `#`) are not allowed; each tag is one specific topic. Payloads are interpreted as raw little-endian scalar bytes matching whichever `read_*`/`write_*` API is used (the producer must publish the same byte layout the consumer reads).
@@ -139,17 +141,6 @@ Although this project includes several models, you may be interested in adding m
 It is recommended to export the files in their native format (usually STEP), modify them if needed in any CAD software, and then export as FBX for additional work in Blender or to be imported straight into Godot.
 
 For details on supported 3D formats and import settings, see the [Godot documentation on importing 3D scenes](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/index.html).
-
-## Help Wanted
-
-Contributions are welcome! Check the [open issues](https://github.com/Open-Industry-Project/Open-Industry-Project/issues) for tasks to pick up, or help with any of the following:
-
-- Additional equipment and device models
-- Improved error/exception handling
-- Code review and refactoring
-- Documentation and tutorials
-
-Join us on [Discord](https://discord.gg/ACRPr6sBpH) to discuss ideas or ask questions.
 
 ## License
 
